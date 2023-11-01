@@ -1,0 +1,5 @@
+IP: 158.160.17.25;
+name_taski: https://yp-tasks.ddns.net/;
+name_kittygram: https://prettycat.ddns.net/;
+login: user1;
+password: 1;
