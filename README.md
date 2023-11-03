@@ -5,3 +5,4 @@
 
 ## Деплой проекта Kittygram на удалённый сервер.
 [https://www.python.org/downloads/]
+(python 3.10)
