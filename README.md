@@ -344,4 +344,4 @@ server {
 sudo certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start"
 ```
 
-<h1 align="center">Проект подготовил, Шевченко Владимир.</h1>
+<h3 align="center">Проект подготовил, Шевченко Владимир.</h3>
