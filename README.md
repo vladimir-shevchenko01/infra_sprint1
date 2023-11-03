@@ -241,7 +241,7 @@ sudo systemctl enable gunicorn
 
 ## Добавление доменного имени в настройки Django
 
-1. Находясь на сервере, перейдите в директорию /taski/backend/backend, с помощью Nano откройте файл settings.py и добавьте в список ALLOWED_HOSTS полученное доменное имя:
+1. Находясь на сервере, перейдите в директорию `/taski/backend/backend`, с помощью Nano откройте файл `settings.py` и добавьте в список `ALLOWED_HOSTS` полученное доменное имя:
 ```
 ALLOWED_HOSTS = ['xxx.xxx.xxx.xxx', '127.0.0.1', 'localhost', 'ваш-домен'] 
 # Вместо xxx.xxx.xxx.xxx — IP вашего сервера.
@@ -259,3 +259,89 @@ server {
 ```
 
 3. После этого проверьте конфигурацию `sudo nginx -t` и перезагрузите её командой `sudo systemctl reload nginx`, чтобы изменения вступили в силу.
+
+## Получение и настройка SSL-сертификата при помощи пакета `certbot`
+
+1. Установить пакет `certbot`. Чтобы установить certbot, вам понадобится пакетный менеджер snap. Установите его командой:
+```
+sudo apt install snapd
+```
+2. Gоследовательно выполните команды:
+```
+# Установка и обновление зависимостей для пакетного менеджера snap.
+sudo snap install core; sudo snap refresh core
+# При успешной установке зависимостей в терминале выведется:
+# core 16-2.58.2 from Canonical✓ installed 
+
+# Установка пакета certbot.
+sudo snap install --classic certbot
+# При успешной установке пакета в терминале выведется:
+# certbot 2.3.0 from Certbot Project (certbot-eff✓) installed
+
+# Создание ссылки на certbot в системной директории,
+# чтобы у пользователя с правами администратора был доступ к этому пакету.
+sudo ln -s /snap/bin/certbot /usr/bin/certbot 
+```
+
+3. Для получения сертификата, введите команду `sudo certbot --nginx`
+
+4. После этого certbot отправит ваши данные на сервер Let's Encrypt, и там будет выпущен сертификат, который автоматически сохранится на вашем сервере в системной директории /etc/ssl/. Также будет автоматически изменена конфигурация Nginx: в файл /etc/nginx/sites-enabled/default добавятся новые настройки и будут прописаны пути к сертификату.
+```
+server {
+
+        server_name ваш_ip ваше_доменное_имя;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+    }
+
+    location /admin/ {
+        proxy_pass http://127.0.0.1:8000;
+    }
+
+    location / {
+
+        root   /var/www/Taski;
+        index  index.html index.htm;
+        try_files $uri /index.html =404;
+        }
+
+# Далее идут новые настройки и описание путей к сертификату.
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/testtaski.hopto.org/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/testtaski.hopto.org/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+}
+
+server {
+    if ($host = ваше_доменное_имя) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+
+    listen       80;
+
+    server_name server_name ваш_ip ваше_доменное_имя;
+    return 404; # managed by Certbot
+
+
+}
+```
+
+5. Перезагрузите конфигурацию Nginx `sudo systemctl reload nginx`
+
+6. Чтобы узнать актуальный статус сертификата и сколько дней осталось до его перевыпуска, используйте команду `sudo certbot certificates`
+
+7.  Теперь убедитесь, что сертификат будет обновляться автоматически `sudo certbot renew --dry-run` 
+Если не выведется ошибка, значит, всё в порядке.
+
+Вручную сертификат можно обновить командой:
+```
+sudo certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start"
+```
+
+<h1 align="center">Проект подготовил, Шевченко Владимир.</h1>
