@@ -1,5 +1,7 @@
+server {
+    server_name prettycat.ddns.net;
+
     location /api/ {
-        # Эта команда определяет, куда нужно перенаправить запрос.
         proxy_pass http://127.0.0.1:8001;
     }
 
@@ -10,7 +12,7 @@
     }
 
     location /media/ {
-        alias /var/www/kittygram/media/;
+        root /var/www/kittygram/;
     }
 
     location / {
@@ -30,10 +32,9 @@
 }
 
 server {
-    server_name 158.160.17.25 yp-tasks.ddns.net;
+    server_name yp-tasks.ddns.net;
 
     location /api/ {
-        # Эта команда определяет, куда нужно перенаправить запрос.
         proxy_pass http://127.0.0.1:8000;
     }
 
@@ -57,6 +58,7 @@ server {
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
 }
+
 server {
     if ($host = yp-tasks.ddns.net) {
         return 301 https://$host$request_uri;
@@ -65,20 +67,19 @@ server {
 
 
     listen 80;
-    server_name 158.160.17.25 yp-tasks.ddns.net;
+    server_name yp-tasks.ddns.net;
     return 404; # managed by Certbot
 
 
 }
+
 server {
     if ($host = prettycat.ddns.net) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
 
-    server_name 158.160.17.25 prettycat.ddns.net;
+    server_name prettycat.ddns.net;
     listen 80;
     return 404; # managed by Certbot
-
-
 }
